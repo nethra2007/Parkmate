@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Bookings - ParkMate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        h1 {
+            color: #2e86de;
+        }
+        .slot {
+            background-color: #dc3545;
+            color: white;
+            margin: 15px auto;
+            padding: 15px;
+            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: white;
+            color: black;
+            border: 1px solid #333;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧾 My Bookings</h1>
+
+    {% if slots %}
+        {% for slot in slots %}
+            <div class="slot">
+                <strong>Slot:</strong> {{ slot.slot_number }}<br>
+                <strong>Vehicle:</strong> {{ slot.vehicle_number }}<br>
+                <a href="{% url 'cancel_slot' slot.slot_number %}" class="btn">Cancel</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You haven't booked any slots yet.</p>
+    {% endif %}
+    <a href="{% url 'home' %}" class="btn">Back to Home</a>
+</body>
+</html>

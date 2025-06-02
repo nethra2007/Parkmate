@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ParkMate - Parking Slots</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #2e86de;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .top-bar {
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar .links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-bar a, .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: white;
+            color: black;
+            text-decoration: none;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .top-bar a:hover,
+        .btn:hover {
+            background-color: #eaeaea;
+        }
+
+        form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .slot {
+            background-color: #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            position: relative;
+            min-height: 180px;
+        }
+
+        .slot:hover {
+            transform: scale(1.05);
+        }
+
+        .available {
+            background-color: #28a745;
+        }
+
+        .occupied {
+            background-color: #dc3545;
+        }
+
+        .slot h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .info {
+            font-size: 14px;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>ParkMate - Parking Slots</h1>
+
+<div class="top-bar">
+    <div class="links">
+        {% if user.is_authenticated %}
+            <span>Logged in as {{ user.username }}</span>
+            {% if not user.is_superuser %}
+                <a href="{% url 'my_bookings' %}">My Bookings</a>
+            {% endif %}
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+        {% if user.is_superuser %}
+            <a href="{% url 'add_slot' %}">+ Add Slot</a>
+        {% endif %}
+    </div>
+
+    <form method="get">
+        <input type="text" name="search" placeholder="Search Slot..." value="{{ request.GET.search|default:'' }}" />
+        <select name="filter">
+            <option value="">All</option>
+            <option value="available" {% if request.GET.filter == 'available' %}selected{% endif %}>Available</option>
+            <option value="occupied" {% if request.GET.filter == 'occupied' %}selected{% endif %}>Occupied</option>
+        </select>
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+<div class="grid">
+    {% for slot in slots %}
+        <div class="slot {% if slot.is_occupied %}occupied{% else %}available{% endif %}">
+            <h3>Slot {{ slot.slot_number }}</h3>
+
+            {% if slot.is_occupied %}
+                <div class="info">
+                    <strong>Booked by:</strong> {{ slot.client_name }}<br />
+                    <strong>Vehicle:</strong> {{ slot.vehicle_number }}
+                </div>
+            {% endif %}
+
+            <div class="btn-group">
+                {% if slot.is_occupied %}
+                    {% if slot.booked_by == user %}
+                        <a href="{% url 'cancel_slot' slot.slot_number %}" class="btn">Cancel</a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <a href="{% url 'cancel_slot' slot.slot_number %}" class="btn">Cancel</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'reserve_slot' slot.slot_number %}" class="btn">Reserve</a>
+                {% endif %}
+
+                {% if user.is_superuser %}
+                    <a href="{% url 'delete_slot' slot.slot_number %}" class="btn">🗑 Delete</a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p style="text-align:center; width:100%;">No slots found matching your search/filter.</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>
